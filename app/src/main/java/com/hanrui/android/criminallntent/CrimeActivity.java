@@ -1,28 +1,26 @@
 package com.hanrui.android.criminallntent;
 
+import android.content.Context;
+import android.content.Intent;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentManager;
-import android.os.Bundle;
+import android.text.method.HideReturnsTransformationMethod;
 
-public class CrimeActivity extends FragmentActivity {
+import java.util.UUID;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_crime);
+public class CrimeActivity extends SingleFragmentActivity {
+    private static final String EXTRA_CRIME_ID="com.hanrui.android.criminalintent.crime_id";
+
+    public static Intent newIntent(Context packageContext, UUID crimeId){
+        Intent intent=new Intent(packageContext,CrimeActivity.class);
+        intent.putExtra(EXTRA_CRIME_ID,crimeId);
+        return intent;
+    }
         /*
         将CrimeFragment添加到CrimeActivity
          */
-        //获取FragmentManager
-        FragmentManager fm=getSupportFragmentManager();
-        //获取一个fragment并交由FragmentManager管理
-        Fragment fragment=fm.findFragmentById(R.id.fragment_container);
-        if(fragment==null){
-            fragment=new CrimeFragment();
-            fm.beginTransaction()
-                    .add(R.id.fragment_container,fragment)
-                    .commit();
-        }
+    @Override
+    protected Fragment createFragment() {
+        UUID crimeId=(UUID)getIntent().getSerializableExtra(EXTRA_CRIME_ID);
+        return CrimeFragment.newInstance(crimeId);
     }
 }
