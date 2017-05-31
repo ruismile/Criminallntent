@@ -3,9 +3,13 @@ package com.hanrui.android.criminallntent;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
@@ -22,9 +26,20 @@ import java.util.List;
 
 public class CrimeListFragment extends Fragment{
     
+    private static final String SAVED_SUBTITLE_VISIBLE="subtitle";
+    
     private RecyclerView mCrimeRecyclerView;
     private CrimeAdapter mAdapter;
+    //新增跟踪记录子标题状态的成员变量
+    private boolean mSubtitleVisible;
     
+    //让FragmentManager知道CrimeListFragment需接收选项菜单方法回调
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater,ViewGroup container,Bundle savedInstanceState) {
         View view=inflater.inflate(R.layout.fragment_crime_list,container,false);
@@ -32,6 +47,10 @@ public class CrimeListFragment extends Fragment{
         mCrimeRecyclerView=(RecyclerView)view.findViewById(R.id.crime_recycler_view);
         //把RecyclerView视图转交给LayoutManager
         mCrimeRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        
+        if(savedInstanceState!=null){
+            mSubtitleVisible=savedInstanceState.getBoolean(SAVED_SUBTITLE_VISIBLE);
+        }
         
         //将Adapter和RecycleView关联
         updateUI();
@@ -42,6 +61,60 @@ public class CrimeListFragment extends Fragment{
     public void onResume() {
         super.onResume();
         updateUI();
+    }
+    
+    //保存设备旋转后子标题状态值
+
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean(SAVED_SUBTITLE_VISIBLE,mSubtitleVisible);
+    }
+
+    //创建菜单
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.fragment_crime_list,menu);
+        //点击Show Subtitle后，更新子标题
+        MenuItem subtitleItem=menu.findItem(R.id.menu_item_show_subtitle);
+        if(mSubtitleVisible){
+            subtitleItem.setTitle(R.string.hide_subtitle);
+        }else{
+            subtitleItem.setTitle(R.string.show_subtitle);
+        }
+    }
+    //响应菜单点击事件
+    public boolean onOptionsItemSelected(MenuItem item){
+        switch(item.getItemId()){
+            case R.id.menu_item_crime:
+                Crime crime=new Crime();
+                CrimeLab.get(getActivity()).addCrime(crime);
+                Intent intent=CrimePagerActivity.newIntent(getActivity(),crime.getId());
+                startActivity(intent);
+                return true;
+            case R.id.menu_item_show_subtitle:
+                mSubtitleVisible=!mSubtitleVisible;
+                getActivity().invalidateOptionsMenu();
+                updateSubtitle();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+    //显示子标题的记录数
+    private void updateSubtitle(){
+        CrimeLab crimeLab = CrimeLab.get(getActivity());
+        int crimeSize=crimeLab.getCrimes().size();
+        String subtitle=getResources().getQuantityString(R.plurals.subtitle_plural,crimeSize,crimeSize);
+        
+        if(!mSubtitleVisible){
+            subtitle=null;
+        }
+
+        AppCompatActivity activity=(AppCompatActivity)getActivity();
+        activity.getSupportActionBar().setSubtitle(subtitle);
     }
 
     //创建CrimeAdapter,然后设置给RecycleView，将Adapter和RecycleView关联
@@ -54,8 +127,10 @@ public class CrimeListFragment extends Fragment{
             mCrimeRecyclerView.setAdapter(mAdapter);
         }else{
             //更改明细内容后通过这个方法刷新列表
+            mAdapter.setCrimes(crimes);
             mAdapter.notifyDataSetChanged();
         }
+        updateSubtitle();
     }
     
     //定义ViewHolder内部类
@@ -114,6 +189,10 @@ public class CrimeListFragment extends Fragment{
         @Override
         public int getItemCount() {
             return mCrimes.size();
+        }
+        
+        public void setCrimes(List<Crime>crimes){
+            mCrimes=crimes;
         }
     }
 }

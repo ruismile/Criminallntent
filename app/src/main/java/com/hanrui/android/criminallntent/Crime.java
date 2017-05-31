@@ -16,9 +16,13 @@ public class Crime {
     private String mTitle;//标题
     private Date mDate;//日期
     private boolean mSolved;//事情是否解决
+    private String mSuspect;//嫌疑人姓名
     
     public Crime(){
-        mId=UUID.randomUUID();
+        this(UUID.randomUUID());
+    }
+    public Crime(UUID id){
+        mId=id;
         mDate=new Date();
     }
 
@@ -48,5 +52,13 @@ public class Crime {
 
     public void setSolved(boolean solved) {
         mSolved = solved;
+    }
+    
+    public String getSuspect(){
+        return mSuspect;
+    }
+    
+    public void setSuspect(String suspect){
+        mSuspect=suspect;
     }
 }
