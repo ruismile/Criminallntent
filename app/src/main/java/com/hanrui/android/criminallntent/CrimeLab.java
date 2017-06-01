@@ -6,12 +6,14 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.Environment;
 
 import com.hanrui.android.criminallntent.database.CrimeBaseHelper;
 import com.hanrui.android.criminallntent.database.CrimeCursorWrapper;
 import com.hanrui.android.criminallntent.database.CrimeDbSchema;
 import com.hanrui.android.criminallntent.database.CrimeDbSchema.CrimeTable;
 
+import java.io.File;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -90,6 +92,17 @@ public class CrimeLab {
         }finally {
             cursor.close();
         }
+    }
+    
+    //找到保存文件的目录
+    public File getPhotoFile(Crime crime) {
+        File externalFilesDir = mContext
+                .getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+
+        if (externalFilesDir == null) {
+            return null;
+        }
+        return new File(externalFilesDir, crime.getPhotoFilename());
     }
     
     //数据库更新方法
